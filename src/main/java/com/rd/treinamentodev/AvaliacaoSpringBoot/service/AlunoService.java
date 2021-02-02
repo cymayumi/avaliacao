@@ -9,6 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class AlunoService {
 
@@ -17,18 +19,25 @@ public class AlunoService {
 
 
     public ResponseEntity gravar(AlunoDTO alunoDTO){
+
         AlunoEntity entity = new AlunoEntity();
         entity.setNomeAluno(alunoDTO.getNome());
         entity.setCpf(alunoDTO.getCpf());
 
-        //TODO validar se o CPF existe no banco antes de existir, caso exista retornar mensagem de erro
+        String cpfDTO = alunoDTO.getCpf();
+        List<AlunoEntity> alunoBuscaCpf = alunoRepository.findByCpf(cpfDTO);
 
+        for(AlunoEntity aluno : alunoBuscaCpf){
 
-
+            if(cpfDTO.equals(aluno.getCpf())){
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Aluno já cadastrado!");
+            }
+        }
 
         entity = alunoRepository.save(entity);
 
         ResultData resultData = new ResultData(HttpStatus.CREATED.value(), "Aluno cadastrado com sucesso", entity.getIdAluno());
+
         return ResponseEntity.status(HttpStatus.CREATED).body(resultData);
     }
 }
